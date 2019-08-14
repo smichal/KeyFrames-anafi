@@ -1,0 +1,26 @@
+;; shadow-cljs configuration
+{:source-paths
+ ["src"
+  ;"src/dev"
+  ;"src/main"
+  ;"src/test"
+  ]
+
+ :dependencies
+ [[net.mikera/core.matrix "0.62.0"]
+
+  ]
+
+ :builds
+ {:app {:target :node-script
+        ;:target :browser
+        :output-to "target/main.js"
+        :main app/main!
+        :devtools {:after-load app/reload!}
+        :compiler-options {:output-feature-set :es-next}
+        }
+  :lib {:target :npm-module
+        :output-dir "KeyFrames/cljs/"
+        :compiler-options {:output-feature-set :es-next}
+        :exports-var app/exports
+        }}}
