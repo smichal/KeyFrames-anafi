@@ -52,25 +52,31 @@ class DroneApi: NSObject  {
     print("upload plan", planFile)
     flightPlan.uploadFlightPlan(filepath: planFile)
     
-    //sleep(3)
-    DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(3), execute: {
-      print("state", flightPlan.latestUploadState)
-
-      
-      print("Reaseons", flightPlan.unavailabilityReasons)
-      
-      let started = flightPlan.activate(restart: false)
-      
-      print("error", flightPlan.latestActivationError.description)
-      
-      if(started) {
-        os_log("started")
-        resolve("ok")
-      } else {
-        os_log("NOT started")
-        reject("error", "", nil)
-      }
-       })
+    func startPlan(retries: Int) -> Void {
+      DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {
+        if(flightPlan.latestUploadState == .uploading && retries > 0) {
+          print("startPlan, retry", retries)
+          startPlan(retries: retries - 1)
+          return
+        }
+        
+        print("state", flightPlan.latestUploadState)
+        print("Reaseons", flightPlan.unavailabilityReasons)
+        
+        let started = flightPlan.activate(restart: true)
+        
+        print("error", flightPlan.latestActivationError.description)
+        
+        if(started) {
+          print("started")
+          resolve("ok")
+        } else {
+          print("NOT started")
+          reject(flightPlan.unavailabilityReasons.first?.description ?? flightPlan.latestActivationError.description, "not started", nil)
+        }
+      })
+    }
+    startPlan(retries: 30)
   }
   
   func getMetadataAndThumbnail(imageData: Data) -> [String?] {

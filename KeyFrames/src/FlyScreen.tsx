@@ -7,6 +7,7 @@ import { human, iOSColors, systemWeights } from 'react-native-typography'
 import { observer } from "mobx-react";
 import { FlightPlan, StoreContext } from "./store";
 import BusyOverlay from "./BusyOverlay";
+import { string } from "prop-types";
 
 @observer
 export default class FlyScreen extends React.Component<NavigationScreenProps> {
@@ -109,10 +110,17 @@ export default class FlyScreen extends React.Component<NavigationScreenProps> {
                   this.setState({busy: true})
                   Drone.fly(plan.mavlinkplan).then(() => {
                     this.setState({busy: false})
-                    Linking.openURL('com.parrot.freeflight3://')
-                  }).catch(() => {
+                    Linking.openURL('com.parrot.freeflight3://').catch((e) => Alert.alert("Couldn't open Free Flight app", ""))
+                  }).catch((e: any) => {
                     this.setState({busy: false})
-                    Alert.alert("An error occurred", "Please check connection with a drone")
+                    // "Please check connection with a drone"
+                    let messages : any = {
+                      'waypointBeyondGeofence': "Waypoint beyond geofence",
+                      'droneGpsInfoInacurate': "Drone GPS info inacurate",
+                      'droneNotCalibrated': "Drone not calibrated",
+                      'cannotTakeOff': "Cannot take off",
+                    }
+                    setTimeout(() => Alert.alert("An error occurred", messages[e.code] || e.code), 100)
                   })
                 }
                 if (true || this.context.isConnected) {

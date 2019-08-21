@@ -108,7 +108,7 @@ export default class PlanScreen extends React.Component<NavigationScreenProps> {
           loadMore: (() => null),
         });
       }).catch(() => {
-        Alert.alert("The drone is not connected", "Connect to the drone (via the controller of wifi) or use photos from drone saved in Library.")
+        Alert.alert("The drone is not connected", "Connect to the drone (via the controller or wifi) or use photos from drone saved in Library.")
       })
     }, 1000)
   }
@@ -127,10 +127,11 @@ export default class PlanScreen extends React.Component<NavigationScreenProps> {
 
   photosSelected = (selected: any[]) => {
     this.setState({ pickerVisible: false, busy: true })
+
     const plan: FlightPlan = this.props.navigation.getParam('plan')
     const images = selected.filter(isString)
     if (images.length > 0) {
-      plan.addKeyFrames(images).then(() => this.setState({ busy: false }))
+      plan.addKeyFrames(images).then(() => this.setState({ busy: false })).catch(() => this.setState({ busy: false }))
     }
 
     const ids = selected.filter(isArray).map((x) => x[0])
@@ -141,6 +142,7 @@ export default class PlanScreen extends React.Component<NavigationScreenProps> {
       Drone.downloadDronePhotos(ids).then((urls: string[]) => {
         plan.addKeyFrames(urls).then(() => this.setState({ busy: false }))
       }).catch(() => {
+        this.setState({ busy: false })
         Alert.alert("Error in downloading photos from the drone.")
       })
     }
